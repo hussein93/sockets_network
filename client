@@ -3,7 +3,7 @@ import sys, socket
 
 # Global Variables
 server_port = ('login-faculty.ccs.neu.edu', 3700)
-basil_id = 'add ID here'
+basil_id = '001196523'
 hussein_id = '001923995'
 
 # Class representing the server info we want to connect with
@@ -28,9 +28,13 @@ def _server_info(data):
 def _server_connect(server):
     # Create streaming socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print server.host
-    print server.port 
-    #s.connect((server.host, server.port))
+    s.connect((server.host, server.port))
+    print 'Connected to server: ' + server.host
+    msg = s.recv(1024)
+    print msg
+    s.send('IAM 001923995\n')
+    msg = s.recv(1024)
+
     s.close()
 
 if __name__ == '__main__':
