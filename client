@@ -25,13 +25,17 @@ def _server_info(data):
         exit()
 
 
-def _server_connect():
-    return 'Done'
+def _server_connect(server):
+    # Create streaming socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    print server.host
+    print server.port 
+    #s.connect((server.host, server.port))
+    s.close()
 
 if __name__ == '__main__':
     args = sys.argv[1:]
     server = _server_info(args)
-    print server.port
-
+    _server_connect(server)
 
 
