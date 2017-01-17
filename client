@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+import sys, socket
+
+# Global Variables
+server_port = ('login-faculty.ccs.neu.edu', 3700)
+basil_id = 'add ID here'
+hussein_id = '001923995'
+
+# Class representing the server info we want to connect with
+class Server(object):
+    def __init__(self, port, host, neu_id):
+        self.port = port
+        self.host = host
+        self.neu_id = neu_id
+
+
+# Parse server info 
+def _server_info(data):
+    if data[0] == '-p':
+        return Server(data[1], data[2], data[3])
+    elif len(data) == 2:
+        return Server(3700, data[0], data[1])
+    else:
+        print 'Incorrect information, must provide host and ID and an optional port with -p'
+        exit()
+
+
+def _server_connect():
+    return 'Done'
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    server = _server_info(args)
+    print server.port
+
+
+
