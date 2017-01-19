@@ -1,81 +1,55 @@
 #!/usr/bin/env python
-import sys, socket
+import sys, socket, argparse
 
 # Global Variables
 server_port = ('login-faculty.ccs.neu.edu', 3700)
 basil_id = '001196523'
 hussein_id = '001923995'
 
-# Class representing the server info we want to connect with
-class Server(object):
-    def __init__(self, port, host, neu_id):
-        self.port = port
-        self.host = host
-        self.neu_id = neu_id
+def _server_connect(host, port, neuid):
+    s = socket.socket();
+    findMyKey(s, host, port or 3700, neuid)
 
-
-# Parse server info 
-def _server_info(data):
-    if data[0] == '-p':
-        return Server(data[1], data[2], data[3])
-    elif len(data) == 2:
-        return Server(3700, data[0], data[1])
-    else:
-        print 'Incorrect information, must provide host and ID and an optional port with -p'
-        exit()
-
-
-def _server_connect(server):
-    # Create streaming socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((server.host, server.port))
-    print 'Connected to server: ' + server.host
-    msg = s.recv(1024)
-    print msg
-    s.send('IAM ' + server.neu_id + '\n')
-
-    not_done = True
-    msg_wait = False 
-    while not_done:
-        # Receive message
-        msg = s.recv(1024)
-
-        # Wait for whole message
-        if '\n' not in msg:
-            msg_wait = True
-            continue
-
-        # Reconstruct message
-        if msg_wait:
-            msg = 'INFO' + msg
-            msg_wait = False
-
-        # Split the message
-        print msg
-        msg = msg.split()
-       
-        if msg[0] == 'INFO':
-            # Reply to server
-            reply = 'REPLY ' + msg[1] + '\n'
-            print reply
-            s.send(reply)
-        elif msg[0] == 'NULL':
-            print 'GOT NULL '
-            print msg
-            exit()
-        elif msg[0] == 'KEY':
-            print msg
-            not_done = False
+def findMyKey(socket, host, port, neuid):
+    key = ''
+    
+    socket.connect((host, port or 3700))
+    
+    gotKey = False
+    
+    while not gotKey:
+        received = socket.recv(1024)
+        args = received.replace('\n', '').split(' ')
+        if received == 'HELLO\n':
+            reply = 'IAM ' + neuid + '\n'
+            socket.send(reply)
+        elif len(args) == 1:
+             received = socket.recv(1024)
+             reply = 'REPLY' + received
+             socket.send(reply)
+        elif args[0] == 'INFO':
+            reply = 'REPLY ' + args[1] + '\n'
+            socket.send(reply)
+        elif args[0] == 'NULL':
+            reply = 'REPLY ' + args[2] + '\n'
+            socket.send(reply)
+        elif args[0] == 'KEY':
+            gotKey = True
+            key = args[1]
         else:
-            print 'incorrect form of message '
-            print msg
-            exit()
+            print 'ERROR - INVALID RESPONSE'
+            break
 
-    s.close()
+    socket.close()
+    print 'Key :', key 
 
-if __name__ == '__main__':
-    args = sys.argv[1:]
-    server = _server_info(args)
-    _server_connect(server)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', help='port')
+    parser.add_argument('HOSTNAME', help='hostname')
+    parser.add_argument('NEUID', help='northeastern user id')
+    args = parser.parse_args()
 
+    _server_connect(args.HOSTNAME, args.p, args.NEUID)
 
+main()
